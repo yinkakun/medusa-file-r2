@@ -1,155 +1,39 @@
-<p align="center">
-  <a href="https://www.medusa-commerce.com">
-    <img alt="Medusa" src="https://i.imgur.com/USubGVY.png" width="100" />
-  </a>
-</p>
-<h1 align="center">
-  Medusa Starter Default
-</h1>
-<p align="center">
-This repo provides the skeleton to get you started with using <a href="https://github.com/medusajs/medusa">Medusa</a>. Follow the steps below to get ready.
-</p>
-<p align="center">
-  <a href="https://github.com/medusajs/medusa/blob/master/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Medusa is released under the MIT license." />
-  </a>
-  <a href="https://github.com/medusajs/medusa/blob/master/CONTRIBUTING.md">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt="PRs welcome!" />
-  </a>
-  <a href="https://discord.gg/xpCwq3Kfn8">
-    <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
-  </a>
-  <a href="https://twitter.com/intent/follow?screen_name=medusajs">
-    <img src="https://img.shields.io/twitter/follow/medusajs.svg?label=Follow%20@medusajs" alt="Follow @medusajs" />
-  </a>
-  <p align="center">
-    <a href="https://heroku.com/deploy?template=https://github.com/medusajs/medusa-starter-default/tree/feat/deploy-heroku">
-      <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
-    </a>
-  </p>
-</p>
+# medusa-file-r2
 
-## Prerequisites
+Cloudflare R2 storage plugin for Medusa. This plugin also supports CSV exports and imports. R2 is S3-compatible object storage service by Cloudflare and has a 10GB/month forever-free tier.
 
-This starter has minimal prerequisites and most of these will usually already be installed on your computer.
+This plugin is written in Typescript and uses ESBuild to create the bundle and files needed to be included in the `medusa.config.js` file.
 
-- [Install Node.js](https://nodejs.org/en/download/)
-- [Install git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Install SQLite](https://www.sqlite.org/download.html)
+## Getting Started
 
-## Setting up your store
+1. Create a Cloudflare account: If you don't have one, you can create one [here](https://dash.cloudflare.com/sign-up).
+2. Create a R2 bucket: Follow [this guide](https://developers.cloudflare.com/r2/get-started) to create a R2 bucket.
+3. Make the bucket public: Follow [this guide](https://developers.cloudflare.com/r2/data-access/public-buckets) to make the bucket public. While managed public access for your buckets through r2.dev cloudflare subdomain is relatively easy, it's preferred to use a custom domain as the managed r2.dev subdomain is rate-limited, custom domain also makes use of Cloudflare Cache to accelerate access to your R2 bucket.
+4. Obtain required credentials: You will need the following credentials to configure the plugin:
+   - `account_id`: Login to your Cloudflare account and go to the `R2` section. The `account_id` is the `Account ID` in the top right corner.
+   - `access_key` and `secret_key` - Follow [this guide](https://developers.cloudflare.com/r2/data-access/s3-api/tokens) to generate Access Key ID and Secret Access Key for your R2 bucket.
+   - `bucket`: The name of the R2 bucket you created.
+   - `public_url`: The public URL of the R2 bucket you created.
+5. Install `medusa-file-r2` plugin: Run the following command in your terminal:
 
-- Install the Medusa CLI
-  ```
-  npm install -g @medusajs/medusa
-  yarn global add @medusajs/medusa
-  ```
-- Create a new Medusa project
-  ```
-  medusa new my-medusa-store
-  ```
-- Run your project
-  ```
-  cd my-medusa-store
-  medusa develop
-  ```
+   ```bash
+   yarn add medusa-file-r2
+   ```
 
-Your local Medusa server is now running on port **9000**.
+6. Add the plugin to medusa.config.js: Add the following code to your medusa.config.js file:
 
-### Seeding your Medusa store
-
----
-
-To seed your medusa store run the following command:
-
-```
-medusa seed -f ./data/seed.json
-```
-
-This command seeds your database with some sample data to get you started, including a store, an administrator account, a region and a product with variants. What the data looks like precisely you can see in the `./data/seed.json` file.
-
-## Setting up your store with Docker
-
-- Install the Medusa CLI
-  ```
-  npm install -g @medusajs/medusa-cli
-  ```
-- Create a new Medusa project
-  ```
-  medusa new my-medusa-store
-  ```
-- Update project config in `medusa-config.js`:
-
-  ```
-  module.exports = {
-    projectConfig: {
-      redis_url: REDIS_URL,
-      database_url: DATABASE_URL, //postgres connectionstring
-      database_type: "postgres",
-      store_cors: STORE_CORS,
-      admin_cors: ADMIN_CORS,
-    },
-    plugins,
-  };
-  ```
-
-- Run your project
-
-  When running your project the first time `docker compose` should be run with the `build` flag to build your container locally:
-
-  ```
-  docker-compose up --build
-  ```
-
-  When running your project subsequent times you can run docker compose with no flags to spin up your local environment in seconds:
-
-  ```
-  docker-compose up
-  ```
-
-Your local Medusa server is now running on port **9000**.
-
-### Seeding your Medusa store with Docker
-
----
-
-To add seed data to your medusa store running with Docker, run this command in a seperate terminal:
-
-```
-docker exec medusa-server medusa seed -f ./data/seed.json
-```
-
-This will execute the previously described seed script in the running `medusa-server` Docker container.
-
-## Try it out
-
-```
-curl -X GET localhost:9000/store/products | python -m json.tool
-```
-
-After the seed script has run you will have the following things in you database:
-
-- a User with the email: admin@medusa-test.com and password: supersecret
-- a Region called Default Region with the countries GB, DE, DK, SE, FR, ES, IT
-- a Shipping Option called Standard Shipping which costs 10 EUR
-- a Product called Cool Test Product with 4 Product Variants that all cost 19.50 EUR
-
-Visit [docs.medusa-commerce.com](https://docs.medusa-commerce.com) for further guides.
-
-<p>
-  <a href="https://www.medusa-commerce.com">
-    Website
-  </a> 
-  |
-  <a href="https://medusajs.notion.site/medusajs/Medusa-Home-3485f8605d834a07949b17d1a9f7eafd">
-    Notion Home
-  </a>
-  |
-  <a href="https://twitter.com/intent/follow?screen_name=medusajs">
-    Twitter
-  </a>
-  |
-  <a href="https://docs.medusa-commerce.com">
-    Docs
-  </a>
-</p>
+   ```js
+   const plugins = [
+     // other plugin configurations
+     {
+       resolve: "medusa-file-r2",
+       options: {
+         account_id: "YOUR_ACCOUNT_ID",
+         access_key: "YOUR_ACCESS_KEY",
+         secret_key: "YOUR_SECRET_KEY",
+         bucket: "YOUR_R2_BUCKET_NAME",
+         public_url: "YOUR_R2_BUCKET_PUBLIC_URL",
+       },
+     },
+   ];
+   ```
