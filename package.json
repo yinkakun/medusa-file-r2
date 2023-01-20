@@ -11,6 +11,9 @@
     "prepare": "yarn build",
     "package": "yarn build && yarn np --no-tests --no-yarn"
   },
+  "files": [
+    "services"
+  ],
   "dependencies": {
     "aws-sdk": "^2.1295.0",
     "medusa-core-utils": "^1.1.37",
