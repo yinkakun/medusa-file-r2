@@ -11,6 +11,10 @@
     "prepare": "yarn build",
     "package": "yarn build && yarn np --no-tests --no-yarn"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yinkakun/medusa-file-r2.git"
+  },
   "files": [
     "services"
   ],
