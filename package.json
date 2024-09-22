@@ -1,6 +1,7 @@
 {
   "name": "medusa-file-r2",
   "version": "0.0.2",
+  "type": "module",
   "description": "Cloudflare R2 storage plugin for Medusa",
   "author": "Yinka Adedire <yinkakun@gmail.com>",
   "license": "MIT",
@@ -9,6 +10,7 @@
     "dev": "yarn bundle --watch",
     "build": "yarn bundle",
     "prepare": "yarn build",
+    "format": "prettier --write .",
     "package": "yarn build && yarn np --no-tests --no-yarn"
   },
   "repository": {
@@ -31,11 +33,11 @@
     "babel-preset-medusa-package": "^1.1.19",
     "cross-env": "^7.0.3",
     "esbuild": "^0.17.3",
-    "eslint": "^8.32.0",
+    "eslint": "^9.9.1",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "np": "^7.6.3",
-    "prettier": "^2.8.3",
+    "prettier": "^3.3.3",
     "typescript": "^4.9.4"
   },
   "peerDependencies": {
