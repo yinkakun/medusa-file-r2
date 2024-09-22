@@ -30,9 +30,9 @@ __export(r2_exports, {
   default: () => r2_default
 });
 module.exports = __toCommonJS(r2_exports);
-var import_fs = __toESM(require("fs"));
-var import_stream = __toESM(require("stream"));
-var import_s3 = __toESM(require("aws-sdk/clients/s3.js"));
+var import_fs = __toESM(require("fs"), 1);
+var import_stream = __toESM(require("stream"), 1);
+var import_s3 = __toESM(require("aws-sdk/clients/s3.js"), 1);
 var import_medusa_interfaces = require("medusa-interfaces");
 class R2StorageService extends import_medusa_interfaces.FileService {
   bucket;

@@ -1,7 +1,7 @@
-import fs from "fs";
-import stream from "stream";
-import S3 from "aws-sdk/clients/s3.js";
-import { FileService } from "medusa-interfaces";
+import fs from 'fs';
+import stream from 'stream';
+import S3 from 'aws-sdk/clients/s3.js';
+import { FileService } from 'medusa-interfaces';
 
 interface File {
   path: string;
@@ -43,8 +43,8 @@ class R2StorageService extends FileService {
 
   storageClient() {
     const client = new S3({
-      region: "auto",
-      signatureVersion: "v4",
+      region: 'auto',
+      signatureVersion: 'v4',
       endpoint: this.endpoint,
       accessKeyId: this.access_key,
       secretAccessKey: this.secret_key,
@@ -71,7 +71,7 @@ class R2StorageService extends FileService {
       };
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while uploading the file.");
+      throw new Error('An error occurred while uploading the file.');
     }
   }
 
@@ -97,7 +97,7 @@ class R2StorageService extends FileService {
       await client.deleteObject(params).promise();
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while deleting the file.");
+      throw new Error('An error occurred while deleting the file.');
     }
   }
 
@@ -113,7 +113,7 @@ class R2StorageService extends FileService {
       return client.getObject(params).createReadStream();
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while downloading the file.");
+      throw new Error('An error occurred while downloading the file.');
     }
   }
 
@@ -127,10 +127,10 @@ class R2StorageService extends FileService {
     };
 
     try {
-      return client.getSignedUrlPromise("getObject", params);
+      return client.getSignedUrlPromise('getObject', params);
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while downloading the file.");
+      throw new Error('An error occurred while downloading the file.');
     }
   }
 

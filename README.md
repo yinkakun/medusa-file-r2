@@ -26,13 +26,13 @@ This plugin is written in Typescript and uses ESBuild to create the bundle and f
    const plugins = [
      // other plugin configurations
      {
-       resolve: "medusa-file-r2",
+       resolve: 'medusa-file-r2',
        options: {
-         account_id: "YOUR_ACCOUNT_ID",
-         access_key: "YOUR_ACCESS_KEY",
-         secret_key: "YOUR_SECRET_KEY",
-         bucket: "YOUR_R2_BUCKET_NAME",
-         public_url: "YOUR_R2_BUCKET_PUBLIC_URL",
+         account_id: 'YOUR_ACCOUNT_ID',
+         access_key: 'YOUR_ACCESS_KEY',
+         secret_key: 'YOUR_SECRET_KEY',
+         bucket: 'YOUR_R2_BUCKET_NAME',
+         public_url: 'YOUR_R2_BUCKET_PUBLIC_URL',
        },
      },
    ];
