@@ -5,35 +5,39 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+  for (var name in all) __defProp(target, name, { get: all[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
+  if ((from && typeof from === 'object') || typeof from === 'function') {
     for (let key of __getOwnPropNames(from))
       if (!__hasOwnProp.call(to, key) && key !== except)
         __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __toESM = (mod, isNodeMode, target) => (
+  (target = mod != null ? __create(__getProtoOf(mod)) : {}),
+  __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, 'default', { value: mod, enumerable: true }) : target,
+    mod,
+  )
+);
+var __toCommonJS = (mod) => __copyProps(__defProp({}, '__esModule', { value: true }), mod);
 var r2_exports = {};
 __export(r2_exports, {
-  default: () => r2_default
+  default: () => r2_default,
 });
 module.exports = __toCommonJS(r2_exports);
-var import_fs = __toESM(require("fs"), 1);
-var import_stream = __toESM(require("stream"), 1);
-var import_s3 = __toESM(require("aws-sdk/clients/s3.js"), 1);
-var import_medusa_interfaces = require("medusa-interfaces");
+var import_fs = __toESM(require('fs'), 1);
+var import_stream = __toESM(require('stream'), 1);
+var import_s3_request_presigner = require('@aws-sdk/s3-request-presigner');
+var import_lib_storage = require('@aws-sdk/lib-storage');
+var import_client_s3 = require('@aws-sdk/client-s3');
+var import_medusa_interfaces = require('medusa-interfaces');
 class R2StorageService extends import_medusa_interfaces.FileService {
   bucket;
   endpoint;
@@ -41,6 +45,7 @@ class R2StorageService extends import_medusa_interfaces.FileService {
   access_key;
   secret_key;
   public_url;
+  // eslint-disable-next-line no-empty-pattern
   constructor({}, options) {
     super();
     this.bucket = options.bucket;
@@ -51,12 +56,13 @@ class R2StorageService extends import_medusa_interfaces.FileService {
     this.endpoint = `https://${this.account_id}.r2.cloudflarestorage.com`;
   }
   storageClient() {
-    const client = new import_s3.default({
-      region: "auto",
-      signatureVersion: "v4",
+    const client = new import_client_s3.S3({
+      region: 'auto',
       endpoint: this.endpoint,
-      accessKeyId: this.access_key,
-      secretAccessKey: this.secret_key
+      credentials: {
+        accessKeyId: this.access_key,
+        secretAccessKey: this.secret_key,
+      },
     });
     return client;
   }
@@ -65,51 +71,59 @@ class R2StorageService extends import_medusa_interfaces.FileService {
     const params = {
       Bucket: this.bucket,
       Key: file.originalname,
-      Body: import_fs.default.createReadStream(file.path)
+      Body: import_fs.default.createReadStream(file.path),
     };
     try {
-      const data = await client.upload(params).promise();
+      const data = await new import_lib_storage.Upload({
+        client,
+        params,
+      }).done();
       return {
         url: `${this.public_url}/${data.Key}`,
-        key: data.Key
+        key: data.Key,
       };
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while uploading the file.");
+      throw new Error('An error occurred while uploading the file.');
     }
   }
-  // @ts-ignore This interface type is incorrect
   async upload(file) {
     return this.uploadFile(file);
   }
   async uploadProtected(file) {
     return this.uploadFile(file);
   }
-  // @ts-ignore This interface type is incorrect
   async delete(file) {
     const client = this.storageClient();
     const params = {
       Bucket: this.bucket,
-      Key: `${file}`
+      Key: `${file}`,
     };
     try {
-      await client.deleteObject(params).promise();
+      await client.deleteObject(params);
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while deleting the file.");
+      throw new Error('An error occurred while deleting the file.');
     }
   }
   async getDownloadStream(fileData) {
     const client = this.storageClient();
-    const params = {
+    const command = new import_client_s3.GetObjectCommand({
       Bucket: this.bucket,
-      Key: fileData.fileKey
-    };
+      Key: fileData.fileKey,
+    });
     try {
-      return client.getObject(params).createReadStream();
+      const response = await client.send(command);
+      const pass = new import_stream.default.PassThrough();
+      const readStream = response.Body;
+      readStream.pipe(pass);
+      return {
+        stream: pass,
+        writeStream: pass,
+      };
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while downloading the file.");
+      throw new Error('An error occurred while downloading the file.');
     }
   }
   async getPresignedDownloadUrl(fileData) {
@@ -117,14 +131,14 @@ class R2StorageService extends import_medusa_interfaces.FileService {
     const params = {
       Bucket: this.bucket,
       Key: fileData.fileKey,
-      Expires: 60 * 60
+      Expires: 60 * 60,
       // 1 hour
     };
     try {
-      return client.getSignedUrlPromise("getObject", params);
+      return (0, import_s3_request_presigner.getSignedUrl)(client, new import_client_s3.GetObjectCommand(params), {});
     } catch (err) {
       console.error(err);
-      throw new Error("An error occurred while downloading the file.");
+      throw new Error('An error occurred while downloading the file.');
     }
   }
   async getUploadStreamDescriptor(fileData) {
@@ -134,13 +148,16 @@ class R2StorageService extends import_medusa_interfaces.FileService {
     const params = {
       Body: pass,
       Key: fileKey,
-      Bucket: this.bucket
+      Bucket: this.bucket,
     };
     return {
       fileKey,
       writeStream: pass,
-      promise: client.upload(params).promise(),
-      url: `${this.endpoint}/${this.bucket}/${fileKey}`
+      promise: new import_lib_storage.Upload({
+        client,
+        params,
+      }).done(),
+      url: `${this.endpoint}/${this.bucket}/${fileKey}`,
     };
   }
 }

@@ -1,6 +1,8 @@
 import fs from 'fs';
 import stream from 'stream';
-import S3 from 'aws-sdk/clients/s3.js';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Upload } from '@aws-sdk/lib-storage';
+import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { FileService } from 'medusa-interfaces';
 
 interface File {
@@ -30,6 +32,7 @@ class R2StorageService extends FileService {
   secret_key: string;
   public_url: string;
 
+  // eslint-disable-next-line no-empty-pattern
   constructor({}, options: Options) {
     super();
 
@@ -44,12 +47,14 @@ class R2StorageService extends FileService {
   storageClient() {
     const client = new S3({
       region: 'auto',
-      signatureVersion: 'v4',
-      endpoint: this.endpoint,
-      accessKeyId: this.access_key,
-      secretAccessKey: this.secret_key,
-    });
 
+      endpoint: this.endpoint,
+
+      credentials: {
+        accessKeyId: this.access_key,
+        secretAccessKey: this.secret_key,
+      },
+    });
     return client;
   }
 
@@ -63,7 +68,10 @@ class R2StorageService extends FileService {
     };
 
     try {
-      const data = await client.upload(params).promise();
+      const data = await new Upload({
+        client,
+        params,
+      }).done();
 
       return {
         url: `${this.public_url}/${data.Key}`,
@@ -75,7 +83,6 @@ class R2StorageService extends FileService {
     }
   }
 
-  // @ts-ignore This interface type is incorrect
   async upload(file: File) {
     return this.uploadFile(file);
   }
@@ -84,7 +91,6 @@ class R2StorageService extends FileService {
     return this.uploadFile(file);
   }
 
-  // @ts-ignore This interface type is incorrect
   async delete(file: string) {
     const client = this.storageClient();
 
@@ -94,7 +100,7 @@ class R2StorageService extends FileService {
     };
 
     try {
-      await client.deleteObject(params).promise();
+      await client.deleteObject(params);
     } catch (err) {
       console.error(err);
       throw new Error('An error occurred while deleting the file.');
@@ -104,13 +110,20 @@ class R2StorageService extends FileService {
   async getDownloadStream(fileData: FileData) {
     const client = this.storageClient();
 
-    const params = {
+    const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: fileData.fileKey,
-    };
+    });
 
     try {
-      return client.getObject(params).createReadStream();
+      const response = await client.send(command);
+      const pass = new stream.PassThrough();
+      const readStream = response.Body as stream.Readable;
+      readStream.pipe(pass);
+      return {
+        stream: pass,
+        writeStream: pass,
+      };
     } catch (err) {
       console.error(err);
       throw new Error('An error occurred while downloading the file.');
@@ -127,7 +140,7 @@ class R2StorageService extends FileService {
     };
 
     try {
-      return client.getSignedUrlPromise('getObject', params);
+      return getSignedUrl(client, new GetObjectCommand(params), {});
     } catch (err) {
       console.error(err);
       throw new Error('An error occurred while downloading the file.');
@@ -148,7 +161,10 @@ class R2StorageService extends FileService {
     return {
       fileKey,
       writeStream: pass,
-      promise: client.upload(params).promise(),
+      promise: new Upload({
+        client,
+        params,
+      }).done(),
       url: `${this.endpoint}/${this.bucket}/${fileKey}`,
     };
   }
